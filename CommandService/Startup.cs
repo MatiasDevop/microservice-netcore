@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CommandService.Data;
+using CommandService.EventProcessing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -32,6 +33,8 @@ namespace CommandService
             services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("InMen"));
             services.AddScoped<ICommandRepository, CommandRepository>();
             services.AddControllers();
+
+            services.AddSingleton<IEventProcessor, EventProcessor>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             
             services.AddSwaggerGen(c =>

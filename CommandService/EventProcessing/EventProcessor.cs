@@ -1,7 +1,9 @@
 using System;
 using System.Text.Json;
 using AutoMapper;
+using CommandService.Data;
 using CommandService.Dtos;
+using CommandService.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CommandService.EventProcessing
@@ -43,6 +45,33 @@ namespace CommandService.EventProcessing
                 default:
                     Console.WriteLine("--> Could nnot determine the event type");
                     return EventType.Undetermined;
+            }
+        }
+
+        private void addPlatform(string platformPublishedMessage)
+        {
+            using(var scope = _scopeFactory.CreateScope())
+            {
+                var repo = scope.ServiceProvider.GetRequiredService<ICommandRepository>();
+
+                var platformPublishedDto = JsonSerializer.Deserialize<PlatformPublishedDto>(platformPublishedMessage);
+
+                try
+                {
+                    var plat = _mapper.Map<Platform>(platformPublishedDto);
+                    if(!repo.ExternalPlatformExits(plat.ExternalID))
+                    {
+                        repo.CreatePlatform(plat);
+                        repo.SaveChanges();
+
+                    }else{
+                        Console.WriteLine("--> Platform Already");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"-->Could not add Platform to DB {ex.Message}");
+                }
             }
         }
     }
